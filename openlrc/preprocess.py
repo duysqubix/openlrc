@@ -67,7 +67,7 @@ class Preprocessor:
         except ImportError:
             raise ImportError(
                 "Noise suppression requires torch and deepfilternet. "
-                "Install them with: pip install openlrc[full]"
+                "Install them with: pip install 'openlrc[full]'"
             )
 
         if "atten_lim_db" in self.options:

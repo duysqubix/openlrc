@@ -119,7 +119,7 @@ into `.lrc` subtitles with LLMs such as
    which includes torch and DeepFilterNet:
 
     ```shell
-    pip install openlrc[full]
+    pip install 'openlrc[full]'
     ```
 
 ## Lightweight Imports
@@ -149,7 +149,7 @@ Heavy dependencies are loaded only when the corresponding features are first use
 
 > [!NOTE]
 > The base `pip install openlrc` does **not** include torch or DeepFilterNet.
-> These are only installed with `pip install openlrc[full]` and are only needed
+> These are only installed with `pip install 'openlrc[full]'` and are only needed
 > for noise suppression (`noise_suppress=True`).
 
 ## Usage 🐍

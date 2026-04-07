@@ -1,5 +1,6 @@
 #  Copyright (C) 2024. Hao Zheng
 #  All rights reserved.
+import builtins
 import shutil
 import sys
 import types
@@ -79,3 +80,16 @@ class TestPreprocessor(unittest.TestCase):
     def test_preprocessor_raises_exception_when_audio_paths_is_not_a_list_or_a_string(self):
         with self.assertRaises(TypeError):
             Preprocessor(123)
+
+    def test_noise_suppression_missing_optional_deps_has_quoted_install_hint(self):
+        original_import = builtins.__import__
+
+        def fake_import(name, globals=None, locals=None, fromlist=(), level=0):
+            if name == "torch":
+                raise ImportError("No module named 'torch'")
+            return original_import(name, globals, locals, fromlist, level)
+
+        preprocessor = Preprocessor("audio.wav")
+        with patch("builtins.__import__", side_effect=fake_import):
+            with self.assertRaisesRegex(ImportError, r"pip install 'openlrc\[full\]'"):
+                preprocessor.noise_suppression(preprocessor.audio_paths)
