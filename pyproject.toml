@@ -7,7 +7,7 @@ name = "openlrc"
 version = "1.6.2"
 description = "Transcribe (whisper) and translate (gpt) voice into LRC file."
 authors = [{ name = "Hao Zheng", email = "zhenghaosustc@gmail.com" }]
-requires-python = ">=3.9, <3.13"
+requires-python = ">=3.10, <3.13"
 readme = "README.md"
 license = "MIT"
 keywords = ["openai-gpt3", "whisper", "voice transcribe", "lrc"]
@@ -79,9 +79,6 @@ explicit = true
 
 [tool.uv.sources]
 torch = [
-    { index = "pytorch-cu124", marker = "sys_platform == 'linux' or sys_platform == 'win32'" },
-]
-torchvision = [
     { index = "pytorch-cu124", marker = "sys_platform == 'linux' or sys_platform == 'win32'" },
 ]
 torchaudio = [
