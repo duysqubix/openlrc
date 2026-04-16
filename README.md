@@ -56,11 +56,14 @@ into `.lrc` subtitles with LLMs such as
     pip install "faster-whisper @ https://github.com/SYSTRAN/faster-whisper/archive/8327d8cc647266ed66f6cd878cf97eccface7351.tar.gz"
     ```
 - 2024.12.19: Added `ModelConfig` for model routing. It is more flexible than plain model-name strings.
-  `ModelConfig` can be `ModelConfig(provider='<provider>', name='<model-name>', base_url='<url>', proxy='<proxy>')`, e.g.:
+  `TranslationConfig` remains serialization-friendly and string-based; use `ModelConfig`
+  in lower-level programmatic APIs when you need richer routing metadata. `ModelConfig`
+  can be `ModelConfig(provider='<provider>', name='<model-name>', base_url='<url>', proxy='<proxy>')`, e.g.:
     ```python
-  
-    from openlrc import LRCer, TranslationConfig, ModelConfig, ModelProvider
-  
+
+    from openlrc import ModelConfig, ModelProvider
+    from openlrc.translate import LLMTranslator
+
     chatbot_model1 = ModelConfig(
         provider=ModelProvider.OPENAI, 
         name='deepseek-chat', 
@@ -72,7 +75,7 @@ into `.lrc` subtitles with LLMs such as
         name='gpt-4o-mini', 
         api_key='sk-APIKEY'
     )
-    lrcer = LRCer(translation=TranslationConfig(chatbot_model=chatbot_model1, retry_model=chatbot_model2))
+    translator = LLMTranslator(chatbot_model=chatbot_model1, retry_model=chatbot_model2)
     ```
 
 ## Installation ⚙️
@@ -177,8 +180,7 @@ Heavy dependencies are loaded only when the corresponding features are first use
 ### Python code
 
 ```python
-import os
-from openlrc import LRCer, TranscriptionConfig, TranslationConfig, ModelConfig, ModelProvider
+from openlrc import LRCer, TranscriptionConfig, TranslationConfig
 
 if __name__ == '__main__':
     lrcer = LRCer()
@@ -216,21 +218,12 @@ if __name__ == '__main__':
     # Clear temp folder after processing done
     lrcer.run('./data/test.mp3', target_lang='zh-cn', clear_temp=True)
 
-    # Use OpenRouter via ModelConfig (custom base_url + routed model name)
-    openrouter_model = ModelConfig(
-        provider=ModelProvider.OPENAI,
-        name='anthropic/claude-3.5-haiku',
-        base_url='https://openrouter.ai/api/v1',
-        api_key=os.getenv('OPENROUTER_API_KEY')
-    )
-    fallback_model = ModelConfig(
-        provider=ModelProvider.OPENAI,
-        name='openai/gpt-4.1-nano',
-        base_url='https://openrouter.ai/api/v1',
-        api_key=os.getenv('OPENROUTER_API_KEY')
-    )
+    # Use a custom OpenAI-compatible endpoint
     lrcer = LRCer(
-        translation=TranslationConfig(chatbot_model=openrouter_model, retry_model=fallback_model)
+        translation=TranslationConfig(
+            chatbot_model='gpt-4.1-nano',
+            base_url_config={'openai': 'https://example.com/v1'}
+        )
     )
 
     # Bilingual subtitle
@@ -241,7 +234,7 @@ Check more details in [Documentation](https://zh-plus.github.io/openlrc/#/).
 
 ### Glossary
 
-Add glossary to improve domain specific translation. For example `aoe4-glossary.yaml`:
+Add glossary to improve domain specific translation. For example `aoe4-glossary.json`:
 
 ```json
 {
@@ -254,16 +247,12 @@ Add glossary to improve domain specific translation. For example `aoe4-glossary.
 ```
 
 ```python
-lrcer = LRCer(translation=TranslationConfig(glossary='./data/aoe4-glossary.yaml'))
+lrcer = LRCer(translation=TranslationConfig(glossary='./data/aoe4-glossary.json'))
 lrcer.run('./data/test.mp3', target_lang='zh-cn')
 ```
 
-or directly use dictionary to add glossary:
-
-```python
-lrcer = LRCer(translation=TranslationConfig(glossary={"aoe4": "帝国时代4", "feudal": "封建时代"}))
-lrcer.run('./data/test.mp3', target_lang='zh-cn')
-```
+To keep `TranslationConfig` serialization-friendly, save in-memory glossary data to
+a JSON file and pass the file path via `TranslationConfig(glossary=...)`.
 
 ## Pricing 💰
 
