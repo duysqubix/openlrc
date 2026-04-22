@@ -312,6 +312,16 @@ class GPTBot(ChatBot):
                 # Authentication errors are deterministic and should not be retried.
                 raise ChatBotException(f"Authentication failed: {e}") from e
             except (
+                openai.BadRequestError,
+                openai.NotFoundError,
+                openai.PermissionDeniedError,
+                openai.ConflictError,
+                openai.UnprocessableEntityError,
+            ) as e:
+                # Client errors are deterministic (e.g. context window exceeded, invalid model),
+                # retrying will not change the outcome.
+                raise ChatBotException(f"Client error: {e}") from e
+            except (
                 openai.RateLimitError,
                 openai.APITimeoutError,
                 openai.APIConnectionError,
@@ -418,6 +428,19 @@ class ClaudeBot(ChatBot):
                     continue
 
                 break
+            except anthropic.AuthenticationError as e:
+                # Authentication errors are deterministic and should not be retried.
+                raise ChatBotException(f"Authentication failed: {e}") from e
+            except (
+                anthropic.BadRequestError,
+                anthropic.NotFoundError,
+                anthropic.PermissionDeniedError,
+                anthropic.ConflictError,
+                anthropic.UnprocessableEntityError,
+            ) as e:
+                # Client errors are deterministic (e.g. context window exceeded, invalid model),
+                # retrying will not change the outcome.
+                raise ChatBotException(f"Client error: {e}") from e
             except (
                 anthropic.RateLimitError,
                 anthropic.APITimeoutError,
