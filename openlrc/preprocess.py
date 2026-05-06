@@ -81,7 +81,7 @@ class Preprocessor:
             ns_path = output_path / f"{audio_name}{NOISE_SUPPRESSED_SUFFIX}.wav"
 
             if not ns_path.exists():
-                audio, info = load_audio(audio_path, sr=df_state.sr())
+                audio, info = load_audio(str(audio_path), sr=df_state.sr())
 
                 # Split audio into 3 min chunks
                 audio_chunks = [
@@ -100,7 +100,7 @@ class Preprocessor:
                         f"Enhanced audio shape does not match original audio shape: {enhanced.shape} != {audio.shape}"
                     )
 
-                save_audio(ns_path, enhanced, sr=df_state.sr())
+                save_audio(str(ns_path), enhanced, sr=df_state.sr())
 
             ns_audio_paths.append(ns_path)
 

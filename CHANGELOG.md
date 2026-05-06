@@ -1,3 +1,22 @@
+## 1.6.3
+
+Improve translation reliability, reduce heavy import overhead, and tighten release tooling around the `uv` workflow.
+
+### New Features:
+
+- Add token-aware, scene-sensitive chunk splitting for long subtitle translation.
+- Add chunked guideline generation for long subtitle files.
+
+### Other Changes:
+
+- Fully defer heavyweight package-root imports and move torch/deepfilternet behind the optional `full` extra.
+- Harden ChatBot and GeminiBot lifecycle handling, retry behavior, and error recovery.
+- Reduce translation log noise and add `OPENLRC_LOG_LEVEL`.
+- Improve line-mismatch retry behavior and raise the default context window to 32K.
+- Replace runtime `assert` checks with explicit exceptions.
+- Fix empty-translation early return, continuous-script duplicate word handling, and lazy import test stdout parsing.
+- Gate long stress tests behind `OPENLRC_TEST_STRESS` and expand chunking/translation coverage.
+
 ## 1.6.2
 
 Refine the transcription and translation pipeline, expand test coverage, and improve the release workflow around `uv`.

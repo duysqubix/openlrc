@@ -320,7 +320,9 @@ def _print_guideline(label: str, guideline: str) -> None:
     print(separator)
 
 
-@unittest.skipUnless(STRESS_TEST, "Requires OPENLRC_TEST_STRESS=1 (uses live LLM API with simulated small context windows)")
+@unittest.skipUnless(
+    STRESS_TEST, "Requires OPENLRC_TEST_STRESS=1 (uses live LLM API with simulated small context windows)"
+)
 class TestChunkedGuidelineLive(unittest.TestCase):
     """Live integration tests for chunked guideline generation.
 

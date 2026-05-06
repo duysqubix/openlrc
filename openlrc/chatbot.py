@@ -14,7 +14,7 @@ import anthropic
 import httpx
 import openai
 from anthropic import Anthropic
-from anthropic._types import NOT_GIVEN
+from anthropic._types import omit
 from anthropic.types import Message
 from google import genai
 from google.genai import errors as genai_errors
@@ -479,7 +479,7 @@ class ClaudeBot(ChatBot):
         effective_top_p = top_p if top_p is not None else self.top_p
 
         # Move "system" role into the parameters
-        system_msg = NOT_GIVEN
+        system_msg = omit
         messages = list(messages)  # Shallow copy to avoid mutating the caller's list.
         if messages[0]["role"] == "system":
             system_msg = messages.pop(0)["content"]
@@ -494,7 +494,7 @@ class ClaudeBot(ChatBot):
                     system=system_msg,
                     temperature=effective_temperature,
                     top_p=effective_top_p,
-                    stop_sequences=stop_sequences or NOT_GIVEN,
+                    stop_sequences=stop_sequences or omit,
                     max_tokens=max_tokens,
                 )
                 self.update_fee(response)

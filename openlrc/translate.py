@@ -359,7 +359,7 @@ class LLMTranslator(Translator):
             except ChatBotException:
                 translated = None
 
-            if self._is_valid_translation(translated, len(half)):
+            if translated is not None and self._is_valid_translation(translated, len(half)):
                 results.extend(translated)
             else:
                 # Recurse on the failing half.

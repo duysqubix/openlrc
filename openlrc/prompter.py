@@ -280,9 +280,7 @@ Please review the following text (title:{title}) and provide the necessary conte
 Now, generate Glossary, Characters, Summary, Tone and Style, and Target Audience:
 """
 
-    def user_partial(
-        self, text, chunk_index: int, total_chunks: int, title="", given_glossary: dict | None = None
-    ):
+    def user_partial(self, text, chunk_index: int, total_chunks: int, title="", given_glossary: dict | None = None):
         glossary_text = f"Given glossary: {given_glossary}" if given_glossary else ""
         return f"""{glossary_text}
 The following is section {chunk_index} of {total_chunks} from the subtitle file (title:{title}).
@@ -358,9 +356,7 @@ Adult viewers interested in crime dramas and police procedurals.
 Remember to add {self.stop_sequence} after the generated contexts."""
 
     def merge_user(self, partial_guidelines: list[str], title: str = ""):
-        parts = "\n\n---\n\n".join(
-            f"### Partial guideline {i + 1}:\n{g}" for i, g in enumerate(partial_guidelines)
-        )
+        parts = "\n\n---\n\n".join(f"### Partial guideline {i + 1}:\n{g}" for i, g in enumerate(partial_guidelines))
         return f"""Title: {title}
 
 {parts}

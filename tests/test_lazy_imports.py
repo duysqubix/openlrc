@@ -42,8 +42,7 @@ class TestLazyImports(unittest.TestCase):
                 return json.loads(line[len(self.PROBE_MARKER) :])
 
         self.fail(
-            "lazy import probe did not emit a parseable result. "
-            f"stdout={result.stdout!r}, stderr={result.stderr!r}"
+            f"lazy import probe did not emit a parseable result. stdout={result.stdout!r}, stderr={result.stderr!r}"
         )
 
     def test_config_import_does_not_load_openlrc_or_heavy_dependencies(self):
