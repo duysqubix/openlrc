@@ -53,20 +53,18 @@ class BaseLLMTranslator(Translator):
         *,
         chatbot: ChatBot,
         retry_chatbot: ChatBot | None = None,
+        cr_chatbot: ChatBot | None = None,
         chunk_size: int = CHUNK_SIZE,
         timestamps: list[tuple[float, float | None]] | None = None,
         chunked_guideline: bool = False,
     ):
         self.chatbot = chatbot
         self.retry_chatbot = retry_chatbot
+        self.cr_chatbot = cr_chatbot
         self.chunk_size = chunk_size
         self.timestamps = timestamps
         self.chunked_guideline = chunked_guideline
         self.api_fee = 0.0
-
-    # ------------------------------------------------------------------
-    # Chunking
-    # ------------------------------------------------------------------
 
     @staticmethod
     def make_chunks(texts: list[str], chunk_size: int = 30) -> list[list[tuple[int, str]]]:
@@ -381,11 +379,11 @@ class LeanTranslator(BaseLLMTranslator):
         super().__init__(
             chatbot=chatbot,
             retry_chatbot=retry_chatbot,
+            cr_chatbot=cr_chatbot,
             chunk_size=chunk_size,
             timestamps=timestamps,
             chunked_guideline=chunked_guideline,
         )
-        self.cr_chatbot = cr_chatbot
         self.enable_cr = enable_cr
 
     def _align_translations(
@@ -843,6 +841,7 @@ class LLMTranslator(BaseLLMTranslator):
         *,
         chatbot: ChatBot,
         retry_chatbot: ChatBot | None = None,
+        cr_chatbot: ChatBot | None = None,
         chunk_size: int = BaseLLMTranslator.CHUNK_SIZE,
         intercept_line: int | None = None,
         chunked_guideline: bool = False,
@@ -854,6 +853,8 @@ class LLMTranslator(BaseLLMTranslator):
         Args:
             chatbot: Primary ChatBot instance for translation.
             retry_chatbot: Optional ChatBot instance for retry attempts.
+            cr_chatbot: Optional separate ChatBot for Context Review.
+                When None, *chatbot* is used for CR.
             chunk_size: Maximum lines per chunk for processing.
             intercept_line: Line number to intercept translation, useful for debugging.
             chunked_guideline: Enable chunked guideline generation for long texts. Default: False.
@@ -864,6 +865,7 @@ class LLMTranslator(BaseLLMTranslator):
         super().__init__(
             chatbot=chatbot,
             retry_chatbot=retry_chatbot,
+            cr_chatbot=cr_chatbot,
             chunk_size=chunk_size,
             timestamps=timestamps,
             chunked_guideline=chunked_guideline,
@@ -1072,13 +1074,19 @@ class LLMTranslator(BaseLLMTranslator):
         summaries: list[str] = ctx.get("summaries", [])
         guideline: str = ctx.get("guideline", "")
 
+        # Record fee baselines before CR and translation so we capture all costs.
+        fee_start = len(self.chatbot.api_fees)
+        cr_fee_start = len(self.cr_chatbot.api_fees) if self.cr_chatbot else 0
+        retry_fee_start = len(self.retry_chatbot.api_fees) if self.retry_chatbot else 0
+
         if not guideline:
             logger.info("Building translation guideline.")
+            cr_bot = self.cr_chatbot or self.chatbot
             context_reviewer = ContextReviewerAgent(
                 src_lang,
                 target_lang,
                 info,
-                chatbot=self.chatbot,
+                chatbot=cr_bot,
                 retry_chatbot=self.retry_chatbot,
                 chunked_guideline=self.chunked_guideline,
             )
@@ -1116,7 +1124,11 @@ class LLMTranslator(BaseLLMTranslator):
             )
             context.previous_summaries = summaries
 
-        self.api_fee += translator_agent.cost + (retry_agent.cost if retry_agent else 0)
+        self.api_fee += sum(self.chatbot.api_fees[fee_start:])
+        if self.cr_chatbot:
+            self.api_fee += sum(self.cr_chatbot.api_fees[cr_fee_start:])
+        if self.retry_chatbot:
+            self.api_fee += sum(self.retry_chatbot.api_fees[retry_fee_start:])
 
         logger.info(f"Translation complete for {info.title}. Fee: {self.api_fee:.4f} USD")
 

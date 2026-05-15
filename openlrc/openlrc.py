@@ -80,6 +80,7 @@ class LRCer:
         translate_mode: Any = _SENTINEL,
         cr_model: Any = _SENTINEL,
         enable_cr: Any = _SENTINEL,
+        chunked_guideline: Any = _SENTINEL,
     ):
 
         # Detect whether any legacy keyword was explicitly passed.
@@ -101,6 +102,7 @@ class LRCer:
             "translate_mode": translate_mode,
             "cr_model": cr_model,
             "enable_cr": enable_cr,
+            "chunked_guideline": chunked_guideline,
         }
         legacy_used = {k: v for k, v in legacy_kwargs.items() if v is not _SENTINEL}
 
@@ -142,6 +144,7 @@ class LRCer:
                     "translate_mode",
                     "cr_model",
                     "enable_cr",
+                    "chunked_guideline",
                 )
             }
             transcription = TranscriptionConfig(**transcription_fields)
@@ -163,6 +166,7 @@ class LRCer:
         self.translate_mode = self._translation_config.translate_mode
         self.cr_model = self._translation_config.cr_model
         self.enable_cr = self._translation_config.enable_cr
+        self.chunked_guideline = self._translation_config.chunked_guideline
 
         self._lock = Lock()
         self.exception = None
@@ -284,14 +288,14 @@ class LRCer:
     def _create_standard_translator(self, timestamps):
         from openlrc.translate import LLMTranslator
 
-        if self.cr_model is not None:
-            logger.warning("cr_model is only used in lean mode, ignoring.")
         if not self.enable_cr:
             logger.warning("enable_cr is only used in lean mode, ignoring.")
         return LLMTranslator(
             chatbot=self.chatbot,
             retry_chatbot=self.retry_chatbot,
+            cr_chatbot=self.cr_chatbot,
             timestamps=timestamps,
+            chunked_guideline=self.chunked_guideline,
         )
 
     def _create_lean_translator(self, timestamps):
@@ -303,6 +307,7 @@ class LRCer:
             cr_chatbot=self.cr_chatbot,
             timestamps=timestamps,
             enable_cr=self.enable_cr,
+            chunked_guideline=self.chunked_guideline,
         )
 
     @staticmethod
