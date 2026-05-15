@@ -60,6 +60,9 @@ class TranslationConfig:
             is used for CR. Ignored in standard mode.
         enable_cr: Whether to run Context Review in lean mode.
             Default: ``True``. Ignored in standard mode.
+        chunked_guideline: Enable chunked guideline generation for long texts.
+            When True, texts exceeding the CR model's context window are
+            automatically split and merged. Default: ``False``
     """
 
     chatbot_model: str = "gpt-4.1-nano"
@@ -73,3 +76,4 @@ class TranslationConfig:
     translate_mode: str = "standard"
     cr_model: str | None = None
     enable_cr: bool = True
+    chunked_guideline: bool = False
